@@ -1,0 +1,15 @@
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\bin\Debug\net8.0\interpreter_2.exe
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\bin\Debug\net8.0\interpreter_2.deps.json
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\bin\Debug\net8.0\interpreter_2.runtimeconfig.json
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\bin\Debug\net8.0\interpreter_2.dll
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\bin\Debug\net8.0\interpreter_2.pdb
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\interpreter_2.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\interpreter_2.AssemblyInfoInputs.cache
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\interpreter_2.AssemblyInfo.cs
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\interpreter_2.csproj.CoreCompileInputs.cache
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\interpreter_2.dll
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\refint\interpreter_2.dll
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\interpreter_2.pdb
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\interpreter_2.genruntimeconfig.cache
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\ref\interpreter_2.dll
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\bin\Debug\net8.0\input.txt
