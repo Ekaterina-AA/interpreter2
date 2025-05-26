@@ -1,3 +1,132 @@
-Скалярное произведение: (1,2,3);(4,5,6)
 
-Векторное произведение: (1,0,0);(0,1,0)
+
+public string EigenvaluesToString(Matrix matrix)
+{
+    if (matrix.Rows != matrix.Columns)
+        throw new ArgumentException("Матрица должна быть квадратной");
+
+    var sb = new StringBuilder();
+    sb.AppendLine(@"\begin{align*}");
+    sb.AppendLine(@"\text{Характеристическое уравнение: } \det(\mathbf{A} - \lambda\mathbf{I}) = 0\\");
+
+    // Для матриц 2x2 и 3x3 выводим аналитическое решение
+    if (matrix.Rows == 2)
+    {
+        double a = 1;
+        double b = -(matrix[0, 0] + matrix[1, 1]);
+        double c = matrix[0, 0] * matrix[1, 1] - matrix[0, 1] * matrix[1, 0];
+
+        sb.AppendLine($@"\det\begin{{pmatrix}}
+        {matrix[0, 0]:0.###} - \lambda & {matrix[0, 1]:0.###} \\
+        {matrix[1, 0]:0.###} & {matrix[1, 1]:0.###} - \lambda
+        \end{{pmatrix}} = 0\\");
+        sb.AppendLine($@"\lambda^2 {b:+#;-#} \lambda {c:+#;-#} = 0\\");
+
+        double discriminant = b * b - 4 * a * c;
+        if (discriminant >= 0)
+        {
+            double lambda1 = (-b + Math.Sqrt(discriminant)) / (2 * a);
+            double lambda2 = (-b - Math.Sqrt(discriminant)) / (2 * a);
+            sb.AppendLine($@"\lambda_1 &= {lambda1:0.###}\\");
+            sb.AppendLine($@"\lambda_2 &= {lambda2:0.###}\\");
+        }
+        else
+        {
+            double realPart = -b / (2 * a);
+            double imagPart = Math.Sqrt(-discriminant) / (2 * a);
+            sb.AppendLine($@"\lambda_1 &= {realPart:0.###} + {imagPart:0.###}i\\");
+            sb.AppendLine($@"\lambda_2 &= {realPart:0.###} - {imagPart:0.###}i\\");
+        }
+    }
+    else if (matrix.Rows == 3)
+    {
+        // Упрощенный метод для 3x3 матриц
+        sb.AppendLine(@"\text{Для матриц 3x3 используем численные методы}\\");
+        
+        // Используем степенной метод для нахождения наибольшего собственного числа
+        double maxEigenvalue = PowerMethod(matrix);
+        sb.AppendLine($@"\text{Наибольшее собственное число (степенной метод): } \lambda_1 \approx {maxEigenvalue:0.###}\\");
+    }
+    else
+    {
+        // Для больших матриц используем QR-алгоритм
+        sb.AppendLine(@"\text{Используем QR-алгоритм для нахождения собственных чисел}\\");
+        var eigenvalues = QRAlgorithm(matrix, 100, 1e-10);
+        
+        sb.AppendLine(@"\text{Собственные числа:}\\");
+        for (int i = 0; i < eigenvalues.Length; i++)
+        {
+            sb.AppendLine($@"\lambda_{i + 1} &\approx {eigenvalues[i]:0.###}\\");
+        }
+    }
+
+    sb.AppendLine(@"\end{align*}");
+    return sb.ToString();
+}
+
+public string EigenvectorsToString(Matrix matrix)
+{
+    if (matrix.Rows != matrix.Columns)
+        throw new ArgumentException("Матрица должна быть квадратной");
+
+    var sb = new StringBuilder();
+    sb.AppendLine(@"\begin{align*}");
+    
+    // Находим собственные числа
+    var eigenvalues = QRAlgorithm(matrix, 100, 1e-6);
+    sb.AppendLine(@"\text{Найденные собственные числа:}\\");
+    for (int i = 0; i < eigenvalues.Length; i++)
+    {
+        sb.AppendLine($@"\lambda_{i + 1} &= {eigenvalues[i]:0.###}\\");
+    }
+
+    sb.AppendLine(@"\text{Соответствующие собственные векторы:}\\");
+    
+    // Для каждого собственного числа находим собственный вектор
+    for (int i = 0; i < eigenvalues.Length; i++)
+    {
+        Matrix A_minus_lambdaI = MatrixSubtract(matrix, MatrixIdentity(matrix.Rows).Multiply(eigenvalues[i]));
+        var eigenvector = FindEigenvector(A_minus_lambdaI);
+        
+        sb.AppendLine($@"\text{{Для }}\lambda_{i + 1} = {eigenvalues[i]:0.###}:\\");
+        sb.AppendLine(@"\begin{pmatrix}");
+        for (int j = 0; j < eigenvector.Length; j++)
+        {
+            sb.Append(eigenvector[j].ToString("0.###"));
+            if (j < eigenvector.Length - 1) sb.Append(@" \\ ");
+        }
+        sb.AppendLine(@"\end{pmatrix}\\");
+    }
+
+    sb.AppendLine(@"\end{align*}");
+    return sb.ToString();
+}
+
+
+
+
+// Численные методы для нахождения собственных чисел и векторов
+private double PowerMethod(Matrix matrix, int maxIterations = 100, double tolerance = 1e-10)
+{
+    Vector b = new Vector(new double[matrix.Rows]);
+    for (int i = 0; i < b.Dimension; i++) b.Components[i] = 1.0;
+
+    double eigenvalue = 0;
+    for (int i = 0; i < maxIterations; i++)
+    {
+        Vector newB = MatrixVectorMultiply(matrix, b);
+        double newEigenvalue = newB.Components[0] / b.Components[0];
+        
+        if (Math.Abs(newEigenvalue - eigenvalue) < tolerance)
+            return newEigenvalue;
+        
+        eigenvalue = newEigenvalue;
+        double norm = Math.Sqrt(newB.Components.Sum(x => x * x));
+        for (int j = 0; j < b.Dimension; j++)
+            b.Components[j] = newB.Components[j] / norm;
+    }
+    return eigenvalue;
+}
+
+
+

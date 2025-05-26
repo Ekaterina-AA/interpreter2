@@ -71,31 +71,28 @@ namespace interpreter_2
             {
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"pdflatex {_outputTexPath}",
+                    FileName = "pdflatex", 
+                    Arguments = $"-interaction=nonstopmode -output-directory=\"{Path.GetDirectoryName(_outputTexPath)}\" \"{_outputTexPath}\"",
                     WorkingDirectory = Path.GetDirectoryName(_outputTexPath),
-                    RedirectStandardOutput = false,
-                    RedirectStandardError = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     UseShellExecute = false,
-                    CreateNoWindow = false
+                    CreateNoWindow = true
                 };
-                
-                using (var process = new Process())
+
+                using (var process = new Process { StartInfo = startInfo })
                 {
-                    process.StartInfo.FileName = "cmd.exe";
-                    process.StartInfo.Arguments = $"pdflatex {_outputTexPath}";
-                    process.StartInfo.WorkingDirectory = Path.GetDirectoryName(_outputPdfPath);
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.RedirectStandardError = true;
-                    process.StartInfo.RedirectStandardOutput = true;
                     process.Start();
+
                     process.WaitForExit();
 
                     if (process.ExitCode != 0)
                     {
-                        var error = process.StandardError.ReadToEnd();
-                        throw new Exception($"Ошибка компиляции LaTeX:\n{error}");
+                        throw new Exception($"Ошибка компиляции LaTeX (код {process.ExitCode})");
                     }
+
+                    process.Start();
+                    process.WaitForExit();
                 }
 
                 var tempExtensions = new[] { ".aux", ".log", ".out", ".toc" };
@@ -108,7 +105,13 @@ namespace interpreter_2
                     }
                 }
 
-                Console.WriteLine($"PDF успешно сгенерирован: {Path.ChangeExtension(_outputTexPath, ".pdf")}");
+                string pdfPath = Path.ChangeExtension(_outputTexPath, ".pdf");
+                if (!File.Exists(pdfPath))
+                {
+                    throw new Exception("PDF не был создан (неизвестная ошибка)");
+                }
+
+                Console.WriteLine($"PDF успешно сгенерирован: {pdfPath}");
             }
             catch (Exception ex)
             {
@@ -146,7 +149,7 @@ namespace interpreter_2
 
                     var operation_t = parts_t[0].Trim();
                     int.TryParse(parts_t[1].Trim(), out int n);
-                    var data_t = parts_t[0].Trim();
+                    var data_t = parts_t[2].Trim();
 
                     vectors = _parser.ParseVectors(data_t, n);
                     latexSolution = _v.VectorArithmeticToString(operation_t, vectors);
@@ -180,30 +183,48 @@ namespace interpreter_2
                         latexSolution = _m.MatrixArithmeticToString(parts_t3[0], m1, m2);
                     }
                     break;
-                //case "Определитель матрицы":
-                //    latexSolution = _m.MatrixDeterminant(data);
-                //    break;
-                //case "Обратная матрица":
-                //    latexSolution = _m.InverseMatrix(data);
-                //    break;
-                //case "Решение СЛАУ":
-                //    latexSolution = _m.SolveLinearSystem(data);
-                //    break;
-                //case "Собственные числа":
-                //    latexSolution = _m.Eigenvalues(data);
-                //    break;
-                //case "Собственные векторы":
-                //    latexSolution = _m.Eigenvectors(data);
-                //    break;
-                //case "Ранг матрицы":
-                //    latexSolution = _m.MatrixRank(data);
-                //    break;
-                //case "Размер линейной оболочки":
-                //    latexSolution = _m.LinearSpanDimension(data);
-                //    break;
-                //case "Принадлежность линейной оболочке":
-                //    latexSolution = _m.CheckLinearSpanMembership(data);
-                //    break;
+                case "Определитель матрицы":
+                    m1 = _parser.ParseMatrix(data);
+                    latexSolution = _m.MatrixDeterminantToString(m1);
+                    break;
+               case "Обратная матрица":
+                    m1 = _parser.ParseMatrix(data);
+                    latexSolution = _m.InverseMatrixToString(m1); 
+                    break;
+                case "Решение СЛАУ":
+                    var parts_t7 = data.Split(new[] { ':' }, 2);
+                    var parts_t8  = data.Split(new[] { ';' }, 2);
+                    m1 = _parser.ParseMatrix(parts_t8[0]);
+                    m2 = _parser.ParseMatrix(parts_t8[1]);
+
+                    latexSolution = _m.SolveLinearSystemToString(m1, m2, parts_t7[0]);
+                    break;
+                case "Собственные числа":
+                    m1 = _parser.ParseMatrix(data);
+                    latexSolution = _m.EigenvaluesToString(m1);
+                    break;
+                case "Собственные векторы":
+                    m1 = _parser.ParseMatrix(data);
+                    latexSolution = _m.EigenvectorsToString(m1);
+                    break;
+                case "Ранг матрицы":
+                    m1 = _parser.ParseMatrix(data);
+                    latexSolution = _m.MatrixRankToString(m1);
+                    break;
+                case "Размер линейной оболочки":
+                    var parts_t4 = data.Split(new[] { ':' }, 2);
+                    int.TryParse(parts_t4[0].Trim(), out int n4);
+                    vectors = _parser.ParseVectors(parts_t4[1], n4);
+                    latexSolution = _m.LinearSpanDimensionToString(vectors);
+                    break;
+                case "Принадлежность линейной оболочке":
+                    var parts_t5 = data.Split(new[] { ':' }, 2);
+                    var parts_t6 = parts_t5[1].Split(new[] { ';' }, 2);
+                    int.TryParse(parts_t5[0].Trim(), out int n5);
+                    var v1 = _parser.ParseVectors(parts_t6[0], 1);
+                    vectors = _parser.ParseVectors(parts_t6[1], n5);
+                    latexSolution = _m.CheckLinearSpanMembershipToString(v1[0], vectors);
+                    break;
                 //case "Уравнения прямой на плоскости":
                 //    latexSolution = _p.LineEquations2D(data);
                 //    break;

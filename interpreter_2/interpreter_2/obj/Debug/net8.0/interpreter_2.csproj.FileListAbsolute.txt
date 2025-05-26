@@ -13,3 +13,4 @@ C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\
 C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\interpreter_2.genruntimeconfig.cache
 C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\ref\interpreter_2.dll
 C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\bin\Debug\net8.0\input.txt
+C:\Users\79163\Documents\GitHub\6_term\interpreter2\interpreter_2\interpreter_2\obj\Debug\net8.0\interpreter_2.sourcelink.json
