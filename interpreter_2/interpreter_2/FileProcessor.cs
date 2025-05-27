@@ -88,7 +88,7 @@ namespace interpreter_2
 
                     if (process.ExitCode != 0)
                     {
-                        throw new Exception($"Ошибка компиляции LaTeX (код {process.ExitCode})");
+                        throw new Exception($"Ошибка компиляции LaTeX)");
                     }
 
                     process.Start();
@@ -169,16 +169,17 @@ namespace interpreter_2
                     latexSolution = _v.OrthogonalizationToString(vectors);
                     break;
                 case "Арифметические операции над матрицами":
-                    var parts_t3 = data.Split(new[] { ':' }, 3);
-                    if (int.TryParse(parts_t3[2].Trim(), out int n3))
+                    var parts_t3 = data.Split(new[] { ':' }, 2);
+                    var parts_t9 = parts_t3[1].Split(new[] { ';' }, 2);
+                    if (int.TryParse(parts_t9[1].Trim(), out int n3))
                     {
-                        m1 = _parser.ParseMatrix(parts_t3[1]);
+                        m1 = _parser.ParseMatrix(parts_t9[0]);
                         latexSolution = _m.MatrixArithmeticToString(parts_t3[0], m1, b: default,  n3);
                     }
                     else
                     {
-                        m1 = _parser.ParseMatrix(parts_t3[1]);
-                        m2 = _parser.ParseMatrix(parts_t3[2]);
+                        m1 = _parser.ParseMatrix(parts_t9[0]);
+                        m2 = _parser.ParseMatrix(parts_t9[1]);
 
                         latexSolution = _m.MatrixArithmeticToString(parts_t3[0], m1, m2);
                     }
@@ -193,7 +194,7 @@ namespace interpreter_2
                     break;
                 case "Решение СЛАУ":
                     var parts_t7 = data.Split(new[] { ':' }, 2);
-                    var parts_t8  = data.Split(new[] { ';' }, 2);
+                    var parts_t8  = parts_t7[1].Split(new[] { ';' }, 2);
                     m1 = _parser.ParseMatrix(parts_t8[0]);
                     m2 = _parser.ParseMatrix(parts_t8[1]);
 
@@ -225,33 +226,71 @@ namespace interpreter_2
                     vectors = _parser.ParseVectors(parts_t6[1], n5);
                     latexSolution = _m.CheckLinearSpanMembershipToString(v1[0], vectors);
                     break;
-                //case "Уравнения прямой на плоскости":
-                //    latexSolution = _p.LineEquations2D(data);
-                //    break;
-                //case "Точка пересечения прямых":
-                //    latexSolution = _p.LinesIntersection2D(data);
-                //    break;
-                //case "Расстояние от точки до прямой":
-                //    latexSolution = _p.PointToLineDistance(data);
-                //    break;
-                //case "Симметричная точка относительно прямой":
-                //    latexSolution = _p.SymmetricPointAboutLine(data);
-                //    break;
-                //case "Уравнения плоскости":
-                //    latexSolution = _p.PlaneEquations3D(data);
-                //    break;
-                //case "Уравнения прямой в n-мерном пространстве":
-                //    latexSolution = _p.LineEquationsND(data);
-                //    break;
-                //case "Пересечение плоскостей":
-                //    latexSolution = _p.PlanesIntersection(data);
-                //    break;
-                //case "Проекция прямой на плоскость":
-                //    latexSolution = _p.LineProjectionOnPlane(data);
-                //    break;
+                case "Уравнения прямой на плоскости":
+                    var parts_t10 = data.Split(new[] { ';' }, 3);
+                    double.TryParse(parts_t10[0].Trim(), out double n6);
+                    double.TryParse(parts_t10[1].Trim(), out double n7);
+                    double.TryParse(parts_t10[2].Trim(), out double n8);
+                    latexSolution = _p.LineEquations2DToString(n6, n7, n8);
+                    break;
+                case "Точка пересечения прямых":
+                    var parts_t11 = data.Split(new[] { ';' }, 6);
+                    latexSolution = _p.LinesIntersectionToString(
+                        double.Parse(parts_t11[0].Trim()),
+                        double.Parse(parts_t11[1].Trim()),
+                        double.Parse(parts_t11[2].Trim()),
+                        double.Parse(parts_t11[3].Trim()),
+                        double.Parse(parts_t11[4].Trim()),
+                        double.Parse(parts_t11[5].Trim()));
+                    break;
+                case "Расстояние от точки до прямой":
+                    vectors = _parser.ParseVectors(data, 3);
+                    latexSolution = _p.PointToLineDistanceToString(vectors[0], vectors[1], vectors[2]);
+                    break;
+                case "Симметричная точка относительно прямой":
+                    vectors = _parser.ParseVectors(data, 3);
+                    latexSolution = _p.SymmetricPointToString(vectors[0], vectors[1], vectors[2]);
+                    break;
+                case "Уравнения плоскости":
+                    var parts_t12 = data.Split(new[] { ';' }, 4);
+                    latexSolution = _p.PlaneEquationsToString(
+                        double.Parse(parts_t12[0].Trim()),
+                        double.Parse(parts_t12[1].Trim()),
+                        double.Parse(parts_t12[2].Trim()),
+                        double.Parse(parts_t12[3].Trim()));
+                    break;
+                case "Уравнения прямой в n-мерном пространстве":
+                    vectors = _parser.ParseVectors(data, 2);
+                    latexSolution = _p.LineEquationsNDToString(vectors[0], vectors[1]);
+                    break;
+                case "Пересечение плоскостей":
+                    var parts_t13 = data.Split(new[] { ';' }, 8);
+                    latexSolution = _p.PlanesIntersectionToString(
+                        double.Parse(parts_t13[0].Trim()),
+                        double.Parse(parts_t13[1].Trim()),
+                        double.Parse(parts_t13[2].Trim()),
+                        double.Parse(parts_t13[3].Trim()),
+                        double.Parse(parts_t13[4].Trim()),
+                        double.Parse(parts_t13[5].Trim()),
+                        double.Parse(parts_t13[6].Trim()),
+                        double.Parse(parts_t13[7].Trim())
+                        );
+                    break;
+                case "Проекция прямой на плоскость":
+                    var parts_t14 = data.Split(new[] { ';' }, 5);
+                    vectors = _parser.ParseVectors(parts_t14[4], 2);
+                    latexSolution = _p.LineProjectionOnPlaneToString(
+                        double.Parse(parts_t14[0].Trim()),
+                        double.Parse(parts_t14[1].Trim()),
+                        double.Parse(parts_t14[2].Trim()),
+                        double.Parse(parts_t14[3].Trim()),
+                        vectors[0],
+                        vectors[1]);
+                    break;
                 default:
                     throw new ArgumentException($"Неизвестная операция: {operation}");
             }
+            
             return latexSolution;
         }
     }

@@ -1,132 +1,117 @@
-
-
-public string EigenvaluesToString(Matrix matrix)
+public string PlaneEquationsToString(double A, double B, double C, double D)
 {
-    if (matrix.Rows != matrix.Columns)
-        throw new ArgumentException("Матрица должна быть квадратной");
-
     var sb = new StringBuilder();
     sb.AppendLine(@"\begin{align*}");
-    sb.AppendLine(@"\text{Характеристическое уравнение: } \det(\mathbf{A} - \lambda\mathbf{I}) = 0\\");
-
-    // Для матриц 2x2 и 3x3 выводим аналитическое решение
-    if (matrix.Rows == 2)
+    sb.AppendLine(@"\text{Общее уравнение плоскости: }");
+    sb.AppendLine($@"{A:0.###}x + {B:0.###}y + {C:0.###}z + {D:0.###} = 0\\");
+    
+    // Уравнение в отрезках
+    if (Math.Abs(A*B*C*D) > 1e-10)
     {
-        double a = 1;
-        double b = -(matrix[0, 0] + matrix[1, 1]);
-        double c = matrix[0, 0] * matrix[1, 1] - matrix[0, 1] * matrix[1, 0];
-
-        sb.AppendLine($@"\det\begin{{pmatrix}}
-        {matrix[0, 0]:0.###} - \lambda & {matrix[0, 1]:0.###} \\
-        {matrix[1, 0]:0.###} & {matrix[1, 1]:0.###} - \lambda
-        \end{{pmatrix}} = 0\\");
-        sb.AppendLine($@"\lambda^2 {b:+#;-#} \lambda {c:+#;-#} = 0\\");
-
-        double discriminant = b * b - 4 * a * c;
-        if (discriminant >= 0)
-        {
-            double lambda1 = (-b + Math.Sqrt(discriminant)) / (2 * a);
-            double lambda2 = (-b - Math.Sqrt(discriminant)) / (2 * a);
-            sb.AppendLine($@"\lambda_1 &= {lambda1:0.###}\\");
-            sb.AppendLine($@"\lambda_2 &= {lambda2:0.###}\\");
-        }
-        else
-        {
-            double realPart = -b / (2 * a);
-            double imagPart = Math.Sqrt(-discriminant) / (2 * a);
-            sb.AppendLine($@"\lambda_1 &= {realPart:0.###} + {imagPart:0.###}i\\");
-            sb.AppendLine($@"\lambda_2 &= {realPart:0.###} - {imagPart:0.###}i\\");
-        }
+        sb.AppendLine(@"\text{Уравнение в отрезках: }");
+        sb.AppendLine($@"\frac{{x}}{{{-D/A:0.###}}} + \frac{{y}}{{{-D/B:0.###}}} + \frac{{z}}{{{-D/C:0.###}}} = 1\\");
     }
-    else if (matrix.Rows == 3)
-    {
-        // Упрощенный метод для 3x3 матриц
-        sb.AppendLine(@"\text{Для матриц 3x3 используем численные методы}\\");
-        
-        // Используем степенной метод для нахождения наибольшего собственного числа
-        double maxEigenvalue = PowerMethod(matrix);
-        sb.AppendLine($@"\text{Наибольшее собственное число (степенной метод): } \lambda_1 \approx {maxEigenvalue:0.###}\\");
-    }
-    else
-    {
-        // Для больших матриц используем QR-алгоритм
-        sb.AppendLine(@"\text{Используем QR-алгоритм для нахождения собственных чисел}\\");
-        var eigenvalues = QRAlgorithm(matrix, 100, 1e-10);
-        
-        sb.AppendLine(@"\text{Собственные числа:}\\");
-        for (int i = 0; i < eigenvalues.Length; i++)
-        {
-            sb.AppendLine($@"\lambda_{i + 1} &\approx {eigenvalues[i]:0.###}\\");
-        }
-    }
-
+    
+    // Нормальное уравнение
+    double norm = Math.Sqrt(A*A + B*B + C*C);
+    sb.AppendLine(@"\text{Нормальное уравнение: }");
+    sb.AppendLine($@"\frac{{{A:0.###}x + {B:0.###}y + {C:0.###}z + {D:0.###}}}{{{norm:0.###}}} = 0\\");
+    
     sb.AppendLine(@"\end{align*}");
     return sb.ToString();
 }
 
-public string EigenvectorsToString(Matrix matrix)
+public string LineEquationsNDToString(Vector point, Vector direction)
 {
-    if (matrix.Rows != matrix.Columns)
-        throw new ArgumentException("Матрица должна быть квадратной");
-
     var sb = new StringBuilder();
     sb.AppendLine(@"\begin{align*}");
+    sb.AppendLine(@"\text{Параметрические уравнения прямой: }\\");
     
-    // Находим собственные числа
-    var eigenvalues = QRAlgorithm(matrix, 100, 1e-6);
-    sb.AppendLine(@"\text{Найденные собственные числа:}\\");
-    for (int i = 0; i < eigenvalues.Length; i++)
+    for (int i = 0; i < point.Dimension; i++)
     {
-        sb.AppendLine($@"\lambda_{i + 1} &= {eigenvalues[i]:0.###}\\");
+        sb.AppendLine($@"x_{i+1} = {point.Components[i]:0.###} + {direction.Components[i]:0.###}t\\");
     }
-
-    sb.AppendLine(@"\text{Соответствующие собственные векторы:}\\");
     
-    // Для каждого собственного числа находим собственный вектор
-    for (int i = 0; i < eigenvalues.Length; i++)
+    // Канонические уравнения (если возможно)
+    if (point.Dimension == 3)
     {
-        Matrix A_minus_lambdaI = MatrixSubtract(matrix, MatrixIdentity(matrix.Rows).Multiply(eigenvalues[i]));
-        var eigenvector = FindEigenvector(A_minus_lambdaI);
-        
-        sb.AppendLine($@"\text{{Для }}\lambda_{i + 1} = {eigenvalues[i]:0.###}:\\");
-        sb.AppendLine(@"\begin{pmatrix}");
-        for (int j = 0; j < eigenvector.Length; j++)
-        {
-            sb.Append(eigenvector[j].ToString("0.###"));
-            if (j < eigenvector.Length - 1) sb.Append(@" \\ ");
-        }
-        sb.AppendLine(@"\end{pmatrix}\\");
+        sb.AppendLine(@"\text{Канонические уравнения: }");
+        sb.AppendLine($@"\frac{{x - {point.Components[0]:0.###}}}{{{direction.Components[0]:0.###}}} = " +
+                     $@"\frac{{y - {point.Components[1]:0.###}}}{{{direction.Components[1]:0.###}}} = " +
+                     $@"\frac{{z - {point.Components[2]:0.###}}}{{{direction.Components[2]:0.###}}}\\");
     }
-
+    
     sb.AppendLine(@"\end{align*}");
     return sb.ToString();
 }
 
-
-
-
-// Численные методы для нахождения собственных чисел и векторов
-private double PowerMethod(Matrix matrix, int maxIterations = 100, double tolerance = 1e-10)
+public string PlanesIntersectionToString(double A1, double B1, double C1, double D1, 
+                                        double A2, double B2, double C2, double D2)
 {
-    Vector b = new Vector(new double[matrix.Rows]);
-    for (int i = 0; i < b.Dimension; i++) b.Components[i] = 1.0;
-
-    double eigenvalue = 0;
-    for (int i = 0; i < maxIterations; i++)
+    var sb = new StringBuilder();
+    sb.AppendLine(@"\begin{align*}");
+    sb.AppendLine(@"\text{Уравнения плоскостей: }");
+    sb.AppendLine($@"1: {A1:0.###}x + {B1:0.###}y + {C1:0.###}z + {D1:0.###} = 0\\");
+    sb.AppendLine($@"2: {A2:0.###}x + {B2:0.###}y + {C2:0.###}z + {D2:0.###} = 0\\");
+    
+    // Направляющий вектор прямой пересечения
+    Vector direction = new Vector(new double[] {
+        B1*C2 - B2*C1,
+        A2*C1 - A1*C2,
+        A1*B2 - A2*B1
+    });
+    
+    // Находим точку на прямой
+    double x0 = 0, y0 = 0, z0 = 0;
+    // Решаем систему для z=0
+    double det = A1*B2 - A2*B1;
+    
+    if (Math.Abs(det) > 1e-10)
     {
-        Vector newB = MatrixVectorMultiply(matrix, b);
-        double newEigenvalue = newB.Components[0] / b.Components[0];
-        
-        if (Math.Abs(newEigenvalue - eigenvalue) < tolerance)
-            return newEigenvalue;
-        
-        eigenvalue = newEigenvalue;
-        double norm = Math.Sqrt(newB.Components.Sum(x => x * x));
-        for (int j = 0; j < b.Dimension; j++)
-            b.Components[j] = newB.Components[j] / norm;
+        x0 = (B1*D2 - B2*D1)/det;
+        y0 = (A2*D1 - A1*D2)/det;
     }
-    return eigenvalue;
+    
+    sb.AppendLine(@"\text{Прямая пересечения: }");
+    sb.AppendLine(@"\text{Параметрические уравнения: }");
+    sb.AppendLine($@"x = {x0:0.###} + {direction.Components[0]:0.###}t\\");
+    sb.AppendLine($@"y = {y0:0.###} + {direction.Components[1]:0.###}t\\");
+    sb.AppendLine($@"z = {z0:0.###} + {direction.Components[2]:0.###}t\\");
+    
+    sb.AppendLine(@"\text{Канонические уравнения: }");
+    sb.AppendLine($@"\frac{{x - {x0:0.###}}}{{{direction.Components[0]:0.###}}} = " +
+                 $@"\frac{{y - {y0:0.###}}}{{{direction.Components[1]:0.###}}} = " +
+                 $@"\frac{{z - {z0:0.###}}}{{{direction.Components[2]:0.###}}}\\");
+    
+    sb.AppendLine(@"\end{align*}");
+    return sb.ToString();
 }
 
-
-
+public string LineProjectionOnPlaneToString(double planeA, double planeB, double planeC, double planeD,
+                                           Vector linePoint, Vector lineDirection)
+{
+    var sb = new StringBuilder();
+    sb.AppendLine(@"\begin{align*}");
+    sb.AppendLine(@"\text{Уравнение плоскости: }");
+    sb.AppendLine($@"{planeA:0.###}x + {planeB:0.###}y + {planeC:0.###}z + {planeD:0.###} = 0\\");
+    
+    sb.AppendLine(@"\text{Исходная прямая: }");
+    sb.AppendLine($@"\mathbf{{r}} = " + linePoint.ToLatexString() + " + t" + lineDirection.ToLatexString() + @"\\");
+    
+    // Находим проекцию направляющего вектора
+    Vector normal = new Vector(new double[] {planeA, planeB, planeC});
+    double dot = lineDirection.Dot(normal);
+    
+    Vector projDirection = lineDirection.Subtract(normal.Multiply(dot/normal.Dot(normal)));
+    
+    // Находим точку пересечения прямой и плоскости
+    double t = -(planeA*linePoint.Components[0] + planeB*linePoint.Components[1] + 
+                planeC*linePoint.Components[2] + planeD) / dot;
+    Vector intersection = linePoint.Add(lineDirection.Multiply(t));
+    
+    sb.AppendLine(@"\text{Проекция прямой: }");
+    sb.AppendLine($@"\mathbf{{r}} = " + intersection.ToLatexString() + " + t" + projDirection.ToLatexString() + @"\\");
+    
+    sb.AppendLine(@"\end{align*}");
+    return sb.ToString();
+}

@@ -16,6 +16,29 @@ namespace interpreter_2.InterpreterTypes
             Components = components;
         }
 
+        public Vector Cross(Vector other)
+        {
+            if (other == null)
+                throw new ArgumentNullException(nameof(other));
+            if (Dimension != 3 || other.Dimension != 3)
+                throw new InvalidOperationException("Cross product is only defined for 3D vectors");
+
+            return new Vector(new double[]
+            {
+            Components[1] * other.Components[2] - Components[2] * other.Components[1],
+            Components[2] * other.Components[0] - Components[0] * other.Components[2],
+            Components[0] * other.Components[1] - Components[1] * other.Components[0]
+            });
+        }
+        public Vector Multiply(double scalar)
+        {
+            double[] result = new double[Dimension];
+            for (int i = 0; i < Dimension; i++)
+            {
+                result[i] = Components[i] * scalar;
+            }
+            return new Vector(result);
+        }
 
         public int Dimension => Components.Length;
 

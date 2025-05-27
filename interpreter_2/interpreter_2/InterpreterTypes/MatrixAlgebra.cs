@@ -371,12 +371,11 @@ namespace interpreter_2.InterpreterTypes
 
 
 
-
         #region strings
         public string MatrixArithmeticToString(string operation, Matrix a, Matrix b = null, double scalar = 0)
         {
             var sb = new StringBuilder();
-            sb.AppendLine(@"\begin{align*}");
+            sb.AppendLine(@"\begin{align*}\\");
 
             switch (operation)
             {
@@ -385,7 +384,7 @@ namespace interpreter_2.InterpreterTypes
                         throw new ArgumentException("Матрицы должны быть одного размера");
 
                     var sum = new double[a.Rows, a.Columns];
-                    sb.AppendLine(@"\mathbf{A} + \mathbf{B} = ");
+                    sb.AppendLine(@"mathbf{A} + mathbf{B} = ");
                     for (int i = 0; i < a.Rows; i++)
                     {
                         for (int j = 0; j < a.Columns; j++)
@@ -403,7 +402,8 @@ namespace interpreter_2.InterpreterTypes
                             throw new ArgumentException("Количество столбцов первой матрицы должно совпадать с количеством строк второй");
 
                         var product = new double[a.Rows, b.Columns];
-                        sb.AppendLine(@"\mathbf{A} \times \mathbf{B} = ");
+                        sb.AppendLine(@"mathbf{A} \times mathbf{B} = ");
+                        sb.AppendLine(@"\begin{pmatrix}");
                         for (int i = 0; i < a.Rows; i++)
                         {
                             for (int j = 0; j < b.Columns; j++)
@@ -415,16 +415,17 @@ namespace interpreter_2.InterpreterTypes
                                     sb.Append($@"{a.Data[i, k]} \times {b.Data[k, j]}");
                                     if (k < a.Columns - 1) sb.Append(@" + ");
                                 }
-                                sb.AppendLine(@" \\");
+                                sb.AppendLine(@"\\");
                             }
                         }
-                        sb.AppendLine(MatrixToLatex(new Matrix(product)));
+                        sb.AppendLine(@"\end{pmatrix}");
+                        sb.AppendLine(@"text{=}");
+                        sb.Append(MatrixToLatex(new Matrix(product)));
                     }
                     else
                     {
                         var scaled = new double[a.Rows, a.Columns];
-                        
-                        sb.AppendLine($@"{scalar} \times \mathbf{scaled} = ");
+                        sb.AppendLine($@"{scalar} \times \mathbf{{A}} = ");
                         for (int i = 0; i < a.Rows; i++)
                         {
                             for (int j = 0; j < a.Columns; j++)
@@ -432,17 +433,17 @@ namespace interpreter_2.InterpreterTypes
                                 scaled[i, j] = a.Data[i, j] * scalar;
                             }
                         }
-                        sb.AppendLine(MatrixToLatex(new Matrix(scaled)));
+                        sb.Append(MatrixToLatex(new Matrix(scaled)));
                     }
                     break;
 
                 default:
                     throw new ArgumentException("Неподдерживаемая операция");
             }
-
-            sb.AppendLine(@"\end{align*}");
+            sb.AppendLine(@"\\\end{align*}");
             return sb.ToString();
         }
+
 
         public string MatrixDeterminantToString(Matrix matrix)
         {
@@ -495,11 +496,11 @@ namespace interpreter_2.InterpreterTypes
 
                 sb.AppendLine(@"\text{Обратная матрица:}\\");
                 Matrix inverse = adjugate.Multiply(1.0 / det);
-                sb.AppendLine(MatrixToLatex(inverse));
+                sb.Append(MatrixToLatex(inverse));
 
                 sb.AppendLine(@"\text{Проверка } \mathbf{A} \cdot \mathbf{A}^{-1} = \mathbf{I}:\\");
                 Matrix identity = matrix * inverse;
-                sb.AppendLine(MatrixToLatex(identity));
+                sb.Append(MatrixToLatex(identity));
             }
 
             sb.AppendLine(@"\end{align*}");
@@ -521,7 +522,7 @@ namespace interpreter_2.InterpreterTypes
             sb.AppendLine(@"\text{Расширенная матрица системы:}\\");
             sb.AppendLine(MatrixToLatex(augmented) + @"\\");
 
-            if (method == "Gauss")
+            if (method == "Гаусс")
             {
                 sb.AppendLine(@"\text{Метод Гаусса:}\\");
                 sb.AppendLine(@"\text{Прямой ход:}\\");
@@ -567,7 +568,7 @@ namespace interpreter_2.InterpreterTypes
                     sb.AppendLine($@"x_{row + 1} &= {solution[row]:0.###}\\");
                 }
             }
-            else if (method == "Jordan")
+            else if (method == "Жордан")
             {
                 sb.AppendLine(@"\text{Метод Жордана-Гаусса:}\\");
 
@@ -794,7 +795,7 @@ namespace interpreter_2.InterpreterTypes
                     sb.Append(matrix.Data[i, j]);
                     if (j < matrix.Columns - 1) sb.Append(@" & ");
                 }
-                if (i < matrix.Rows - 1) sb.AppendLine(@" \\");
+                if (i < matrix.Rows - 1) sb.AppendLine(@"\\");
             }
             sb.AppendLine(@"\end{pmatrix}");
             return sb.ToString();
